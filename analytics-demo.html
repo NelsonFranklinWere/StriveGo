@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StriveGo Analytics Demo</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #0A2463, #8B5CF6);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        .demo-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            border-left: 4px solid #00C2DA;
+        }
+        .demo-button {
+            background: #00C2DA;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .demo-button:hover {
+            background: #8B5CF6;
+            transform: translateY(-2px);
+        }
+        .analytics-console {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 1rem 0;
+        }
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 0.5rem;
+            display: inline-block;
+            min-width: 150px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00C2DA;
+        }
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 StriveGo Analytics Demo</h1>
+        <p>This demo shows the comprehensive analytics system implemented on your website.</p>
+
+        <div class="demo-section">
+            <h3>📊 Real-time Analytics Metrics</h3>
+            <div class="metric-card">
+                <div class="metric-value" id="session-duration">0</div>
+                <div class="metric-label">Session Duration (s)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="scroll-depth">0</div>
+                <div class="metric-label">Scroll Depth (%)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="click-count">0</div>
+                <div class="metric-label">Total Clicks</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="engagement-score">0</div>
+                <div class="metric-label">Engagement Score</div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🎯 Interactive Demo Elements</h3>
+            <button class="demo-button" onclick="simulateClick()">Simulate Click</button>
+            <button class="demo-button" onclick="simulateScroll()">Simulate Scroll</button>
+            <button class="demo-button" onclick="simulateWhatsApp()">WhatsApp Click</button>
+            <button class="demo-button" onclick="simulateExitIntent()">Test Exit Intent</button>
+        </div>
+
+        <div class="demo-section">
+            <h3>📈 Analytics Console</h3>
+            <div class="analytics-console" id="analytics-console">
+                <div>Analytics events will appear here...</div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🔧 Analytics Features Implemented</h3>
+            <ul>
+                <li>✅ <strong>Scroll Depth Tracking</strong> - Monitors 25%, 50%, 75%, 90%, 100% milestones</li>
+                <li>✅ <strong>Click Tracking</strong> - Every click with position and element data</li>
+                <li>✅ <strong>Time Tracking</strong> - Session duration and engagement scoring</li>
+                <li>✅ <strong>Exit Intent Detection</strong> - Smart modal when users try to leave</li>
+                <li>✅ <strong>Page Visibility</strong> - Tab switching and background time tracking</li>
+                <li>✅ <strong>Google Analytics 4</strong> - Full integration with custom events</li>
+                <li>✅ <strong>Real-time Console</strong> - Debug analytics in browser console</li>
+                <li>✅ <strong>Mobile Optimized</strong> - Touch events and responsive tracking</li>
+            </ul>
+        </div>
+
+        <div class="demo-section">
+            <h3>🚀 Next Steps</h3>
+            <ol>
+                <li>Replace <code>GA_MEASUREMENT_ID</code> with your actual Google Analytics ID</li>
+                <li>Test the analytics on your live website</li>
+                <li>Set up conversion goals in Google Analytics</li>
+                <li>Monitor user engagement data in your GA4 dashboard</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the analytics tracker for demo
+        class DemoAnalyticsTracker {
+            constructor() {
+                this.sessionStart = Date.now();
+                this.scrollDepth = 0;
+                this.clickCount = 0;
+                this.engagementScore = 0;
+                this.console = document.getElementById('analytics-console');
+                
+                this.startDemo();
+            }
+
+            startDemo() {
+                // Update metrics every second
+                setInterval(() => {
+                    this.updateMetrics();
+                }, 1000);
+
+                // Track clicks
+                document.addEventListener('click', (event) => {
+                    this.clickCount++;
+                    this.logEvent('click_tracked', {
+                        element_type: event.target.tagName.toLowerCase(),
+                        click_position: { x: event.clientX, y: event.clientY },
+                        total_clicks: this.clickCount
+                    });
+                });
+
+                // Track scroll
+                let ticking = false;
+                window.addEventListener('scroll', () => {
+                    if (!ticking) {
+                        requestAnimationFrame(() => {
+                            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                            const scrollPercent = Math.round((scrollTop / docHeight) * 100);
+                            
+                            this.scrollDepth = Math.max(this.scrollDepth, scrollPercent);
+                            this.logEvent('scroll_depth', {
+                                depth_percentage: scrollPercent,
+                                max_depth: this.scrollDepth
+                            });
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                });
+            }
+
+            updateMetrics() {
+                const sessionDuration = Math.round((Date.now() - this.sessionStart) / 1000);
+                const timeScore = Math.min(sessionDuration / 6, 10);
+                const scrollScore = (this.scrollDepth / 100) * 5;
+                const clickScore = Math.min(this.clickCount * 0.5, 5);
+                this.engagementScore = Math.round(timeScore + scrollScore + clickScore);
+
+                document.getElementById('session-duration').textContent = sessionDuration;
+                document.getElementById('scroll-depth').textContent = this.scrollDepth;
+                document.getElementById('click-count').textContent = this.clickCount;
+                document.getElementById('engagement-score').textContent = this.engagementScore;
+            }
+
+            logEvent(eventName, parameters) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${eventName}: ${JSON.stringify(parameters)}`;
+                
+                const consoleDiv = document.getElementById('analytics-console');
+                const newEntry = document.createElement('div');
+                newEntry.textContent = logEntry;
+                newEntry.style.marginBottom = '0.5rem';
+                newEntry.style.color = '#00ff00';
+                
+                consoleDiv.appendChild(newEntry);
+                consoleDiv.scrollTop = consoleDiv.scrollHeight;
+                
+                // Keep only last 20 entries
+                while (consoleDiv.children.length > 20) {
+                    consoleDiv.removeChild(consoleDiv.firstChild);
+                }
+            }
+        }
+
+        // Demo functions
+        function simulateClick() {
+            const button = document.createElement('button');
+            button.textContent = 'Demo Click';
+            button.style.position = 'absolute';
+            button.style.left = '-9999px';
+            document.body.appendChild(button);
+            button.click();
+            document.body.removeChild(button);
+        }
+
+        function simulateScroll() {
+            window.scrollTo({
+                top: Math.random() * document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        function simulateWhatsApp() {
+            const link = document.createElement('a');
+            link.href = 'https://wa.me/254743869564';
+            link.style.position = 'absolute';
+            link.style.left = '-9999px';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function simulateExitIntent() {
+            const event = new MouseEvent('mouseleave', {
+                clientY: -10,
+                bubbles: true
+            });
+            document.dispatchEvent(event);
+        }
+
+        // Initialize demo
+        const demoTracker = new DemoAnalyticsTracker();
+    </script>
+</body>
+</html>

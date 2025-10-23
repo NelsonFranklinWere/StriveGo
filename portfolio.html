@@ -166,6 +166,23 @@
   }
   </script>
 
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'GA_MEASUREMENT_ID', {
+      page_title: 'StriveGo Portfolio - AI Projects Kenya',
+      page_location: window.location.href,
+      custom_map: {
+        'custom_parameter_1': 'user_engagement_level',
+        'custom_parameter_2': 'scroll_depth_percentage',
+        'custom_parameter_3': 'session_duration_seconds'
+      }
+    });
+  </script>
+
   <!-- Fonts and Styles -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -507,6 +524,397 @@
                             card.style.display = 'none';
                         }
                     });
+                });
+            });
+        });
+    </script>
+
+    <!-- ===== COMPREHENSIVE ANALYTICS TRACKING SYSTEM ===== -->
+    <script>
+        // Analytics Configuration
+        const ANALYTICS_CONFIG = {
+            GA_MEASUREMENT_ID: 'GA_MEASUREMENT_ID', // Replace with your actual GA4 Measurement ID
+            SCROLL_DEPTH_MILESTONES: [25, 50, 75, 90, 100],
+            ENGAGEMENT_THRESHOLD: 30000, // 30 seconds
+            EXIT_INTENT_DELAY: 2000, // 2 seconds
+            SESSION_TIMEOUT: 1800000 // 30 minutes
+        };
+
+        // User Engagement Tracking
+        class UserEngagementTracker {
+            constructor() {
+                this.sessionStart = Date.now();
+                this.scrollDepth = 0;
+                this.clickCount = 0;
+                this.scrollEvents = 0;
+                this.timeOnPage = 0;
+                this.maxScrollDepth = 0;
+                this.engagementScore = 0;
+                this.trackedMilestones = new Set();
+                this.isExiting = false;
+                
+                this.initTracking();
+            }
+
+            initTracking() {
+                this.trackScrollDepth();
+                this.trackClicks();
+                this.trackTimeOnPage();
+                this.trackExitIntent();
+                this.trackPageVisibility();
+                this.trackUserInteractions();
+                this.trackPortfolioInteractions();
+            }
+
+            // Scroll Depth Tracking
+            trackScrollDepth() {
+                let ticking = false;
+                
+                const updateScrollDepth = () => {
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                    const scrollPercent = Math.round((scrollTop / docHeight) * 100);
+                    
+                    this.scrollDepth = Math.max(this.scrollDepth, scrollPercent);
+                    this.maxScrollDepth = Math.max(this.maxScrollDepth, scrollPercent);
+                    this.scrollEvents++;
+                    
+                    // Track scroll milestones
+                    ANALYTICS_CONFIG.SCROLL_DEPTH_MILESTONES.forEach(milestone => {
+                        if (scrollPercent >= milestone && !this.trackedMilestones.has(milestone)) {
+                            this.trackedMilestones.add(milestone);
+                            this.sendEvent('scroll_depth', {
+                                depth_percentage: milestone,
+                                total_scroll_events: this.scrollEvents,
+                                session_duration: this.getSessionDuration()
+                            });
+                        }
+                    });
+                    
+                    ticking = false;
+                };
+
+                const requestTick = () => {
+                    if (!ticking) {
+                        requestAnimationFrame(updateScrollDepth);
+                        ticking = true;
+                    }
+                };
+
+                window.addEventListener('scroll', requestTick, { passive: true });
+            }
+
+            // Click Tracking
+            trackClicks() {
+                document.addEventListener('click', (event) => {
+                    this.clickCount++;
+                    
+                    const element = event.target;
+                    const elementData = this.getElementData(element);
+                    
+                    this.sendEvent('click_tracked', {
+                        element_type: elementData.type,
+                        element_id: elementData.id,
+                        element_class: elementData.className,
+                        element_text: elementData.text,
+                        click_position: {
+                            x: event.clientX,
+                            y: event.clientY
+                        },
+                        total_clicks: this.clickCount,
+                        session_duration: this.getSessionDuration()
+                    });
+                    
+                    // Track specific important clicks
+                    if (element.matches('a[href*="wa.me"], a[href*="whatsapp"]')) {
+                        this.sendEvent('whatsapp_click', {
+                            click_count: this.clickCount,
+                            session_duration: this.getSessionDuration()
+                        });
+                    }
+                    
+                    if (element.matches('button, .btn, .cta')) {
+                        this.sendEvent('button_click', {
+                            button_text: element.textContent.trim(),
+                            total_clicks: this.clickCount
+                        });
+                    }
+                });
+            }
+
+            // Portfolio-specific tracking
+            trackPortfolioInteractions() {
+                // Track filter button clicks
+                document.addEventListener('click', (event) => {
+                    if (event.target.matches('.filter-btn')) {
+                        this.sendEvent('portfolio_filter_click', {
+                            filter_category: event.target.getAttribute('data-filter'),
+                            total_clicks: this.clickCount
+                        });
+                    }
+                });
+
+                // Track project card interactions
+                document.addEventListener('click', (event) => {
+                    if (event.target.closest('.project-card')) {
+                        const projectCard = event.target.closest('.project-card');
+                        const projectTitle = projectCard.querySelector('h3')?.textContent || 'Unknown';
+                        
+                        this.sendEvent('project_card_click', {
+                            project_title: projectTitle,
+                            click_position: {
+                                x: event.clientX,
+                                y: event.clientY
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Time on Page Tracking
+            trackTimeOnPage() {
+                setInterval(() => {
+                    this.timeOnPage = Date.now() - this.sessionStart;
+                    this.updateEngagementScore();
+                    
+                    // Send periodic engagement updates
+                    if (this.timeOnPage % 30000 === 0) { // Every 30 seconds
+                        this.sendEvent('engagement_update', {
+                            time_on_page: this.timeOnPage,
+                            scroll_depth: this.scrollDepth,
+                            click_count: this.clickCount,
+                            engagement_score: this.engagementScore
+                        });
+                    }
+                }, 1000);
+            }
+
+            // Exit Intent Detection
+            trackExitIntent() {
+                let exitIntentTriggered = false;
+                
+                document.addEventListener('mouseleave', (event) => {
+                    if (event.clientY <= 0 && !exitIntentTriggered) {
+                        exitIntentTriggered = true;
+                        this.isExiting = true;
+                        
+                        setTimeout(() => {
+                            this.showExitIntentModal();
+                        }, ANALYTICS_CONFIG.EXIT_INTENT_DELAY);
+                    }
+                });
+                
+                // Track beforeunload
+                window.addEventListener('beforeunload', () => {
+                    this.sendEvent('page_exit', {
+                        session_duration: this.getSessionDuration(),
+                        scroll_depth: this.scrollDepth,
+                        click_count: this.clickCount,
+                        engagement_score: this.engagementScore,
+                        exit_reason: 'beforeunload'
+                    });
+                });
+            }
+
+            // Page Visibility Tracking
+            trackPageVisibility() {
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        this.sendEvent('page_hidden', {
+                            session_duration: this.getSessionDuration(),
+                            scroll_depth: this.scrollDepth,
+                            time_visible: this.timeOnPage
+                        });
+                    } else {
+                        this.sendEvent('page_visible', {
+                            session_duration: this.getSessionDuration()
+                        });
+                    }
+                });
+            }
+
+            // User Interactions Tracking
+            trackUserInteractions() {
+                // Track form interactions
+                document.addEventListener('focus', (event) => {
+                    if (event.target.matches('input, textarea, select')) {
+                        this.sendEvent('form_focus', {
+                            field_type: event.target.type || 'text',
+                            field_name: event.target.name || 'unnamed'
+                        });
+                    }
+                });
+            }
+
+            // Engagement Score Calculation
+            updateEngagementScore() {
+                const timeScore = Math.min(this.timeOnPage / 60000, 10); // Max 10 points for time
+                const scrollScore = (this.scrollDepth / 100) * 5; // Max 5 points for scroll
+                const clickScore = Math.min(this.clickCount * 0.5, 5); // Max 5 points for clicks
+                
+                this.engagementScore = Math.round(timeScore + scrollScore + clickScore);
+            }
+
+            // Get Session Duration
+            getSessionDuration() {
+                return Math.round((Date.now() - this.sessionStart) / 1000);
+            }
+
+            // Get Element Data
+            getElementData(element) {
+                return {
+                    type: element.tagName.toLowerCase(),
+                    id: element.id || null,
+                    className: element.className || null,
+                    text: element.textContent?.trim().substring(0, 50) || null
+                };
+            }
+
+            // Send Event to Google Analytics
+            sendEvent(eventName, parameters = {}) {
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', eventName, {
+                        ...parameters,
+                        custom_parameter_1: this.engagementScore,
+                        custom_parameter_2: this.scrollDepth,
+                        custom_parameter_3: this.getSessionDuration(),
+                        page_location: window.location.href,
+                        page_title: document.title
+                    });
+                }
+                
+                // Also send to console for debugging
+                console.log(`Analytics Event: ${eventName}`, parameters);
+            }
+
+            // Exit Intent Modal
+            showExitIntentModal() {
+                if (this.isExiting) {
+                    const modal = this.createExitIntentModal();
+                    document.body.appendChild(modal);
+                    
+                    // Track modal display
+                    this.sendEvent('exit_intent_modal_shown', {
+                        session_duration: this.getSessionDuration(),
+                        scroll_depth: this.scrollDepth,
+                        engagement_score: this.engagementScore
+                    });
+                }
+            }
+
+            createExitIntentModal() {
+                const modal = document.createElement('div');
+                modal.id = 'exit-intent-modal';
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-family: 'Poppins', sans-serif;
+                `;
+                
+                modal.innerHTML = `
+                    <div style="
+                        background: white;
+                        padding: 2rem;
+                        border-radius: 1rem;
+                        max-width: 500px;
+                        text-align: center;
+                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    ">
+                        <h3 style="color: #0A2463; margin-bottom: 1rem;">Wait! Don't leave yet!</h3>
+                        <p style="color: #666; margin-bottom: 1.5rem;">
+                            Did you find what you were looking for? We'd love to help you with your AI project!
+                        </p>
+                        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                            <button id="stay-on-site" style="
+                                background: #00C2DA;
+                                color: white;
+                                border: none;
+                                padding: 0.75rem 1.5rem;
+                                border-radius: 0.5rem;
+                                cursor: pointer;
+                                font-weight: 600;
+                            ">Yes, I found what I need</button>
+                            <button id="need-help" style="
+                                background: #8B5CF6;
+                                color: white;
+                                border: none;
+                                padding: 0.75rem 1.5rem;
+                                border-radius: 0.5rem;
+                                cursor: pointer;
+                                font-weight: 600;
+                            ">I need more help</button>
+                            <button id="close-modal" style="
+                                background: #666;
+                                color: white;
+                                border: none;
+                                padding: 0.75rem 1.5rem;
+                                border-radius: 0.5rem;
+                                cursor: pointer;
+                                font-weight: 600;
+                            ">Close</button>
+                        </div>
+                    </div>
+                `;
+                
+                // Add event listeners
+                modal.querySelector('#stay-on-site').addEventListener('click', () => {
+                    this.sendEvent('exit_intent_positive', {
+                        response: 'found_what_needed',
+                        session_duration: this.getSessionDuration()
+                    });
+                    document.body.removeChild(modal);
+                    this.isExiting = false;
+                });
+                
+                modal.querySelector('#need-help').addEventListener('click', () => {
+                    this.sendEvent('exit_intent_help_requested', {
+                        response: 'needs_help',
+                        session_duration: this.getSessionDuration()
+                    });
+                    // Redirect to WhatsApp
+                    window.open('https://wa.me/254743869564?text=Hello%20StriveGo,%20I%20need%20help%20with%20my%20AI%20project', '_blank');
+                    document.body.removeChild(modal);
+                    this.isExiting = false;
+                });
+                
+                modal.querySelector('#close-modal').addEventListener('click', () => {
+                    this.sendEvent('exit_intent_dismissed', {
+                        response: 'dismissed',
+                        session_duration: this.getSessionDuration()
+                    });
+                    document.body.removeChild(modal);
+                    this.isExiting = false;
+                });
+                
+                return modal;
+            }
+        }
+
+        // Initialize Analytics when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const analyticsTracker = new UserEngagementTracker();
+            
+            // Send initial page view
+            analyticsTracker.sendEvent('page_view', {
+                page_title: document.title,
+                page_location: window.location.href,
+                referrer: document.referrer || 'direct'
+            });
+            
+            // Track page load time
+            window.addEventListener('load', () => {
+                const loadTime = Date.now() - analyticsTracker.sessionStart;
+                analyticsTracker.sendEvent('page_load_complete', {
+                    load_time_ms: loadTime,
+                    page_size: document.documentElement.innerHTML.length
                 });
             });
         });
